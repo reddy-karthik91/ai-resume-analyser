@@ -1,0 +1,103 @@
+.processing-container {
+  max-width: 500px;
+  width: 100%;
+  margin: 40px auto;
+  padding: 0 24px;
+}
+
+.processing-card {
+  background-color: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 16px;
+  padding: 48px 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .spinner-wrapper {
+    margin-bottom: 24px;
+
+    .minimal-spinner {
+      width: 48px;
+      height: 48px;
+      border: 3px solid #f7f6f2;
+      border-top: 3px solid #2f6b5f;
+      border-radius: 50%;
+      animation: spin 1s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+    }
+  }
+
+  .processing-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f1f1f;
+    margin: 0 0 8px;
+    letter-spacing: -0.015em;
+  }
+
+  .processing-subtitle {
+    font-size: 0.9rem;
+    color: #666666;
+    margin: 0 0 32px;
+    letter-spacing: -0.01em;
+  }
+
+  .progress-wrapper {
+    width: 100%;
+    max-width: 320px;
+    margin-bottom: 32px;
+
+    .custom-progress {
+      height: 4px;
+      border-radius: 2px;
+      background-color: #f7f6f2;
+
+      ::ng-deep .mdc-linear-progress__bar-inner {
+        border-color: #2f6b5f !important;
+      }
+    }
+  }
+
+  .status-steps {
+    width: 100%;
+    max-width: 240px;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+
+    .step {
+      font-size: 0.85rem;
+      color: #666666;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      letter-spacing: -0.01em;
+
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: #e5e5e5;
+        display: inline-block;
+        transition: background-color 0.3s ease;
+      }
+
+      &.active {
+        color: #1f1f1f;
+        font-weight: 500;
+
+        .dot {
+          background-color: #2f6b5f;
+          box-shadow: 0 0 0 3px rgba(47, 107, 95, 0.15);
+        }
+      }
+    }
+  }
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}

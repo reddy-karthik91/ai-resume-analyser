@@ -1,0 +1,37 @@
+.navbar {
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e5e5;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  padding: 0 24px;
+
+  .navbar-container {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .brand {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1f1f1f;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.01em;
+
+    .icon {
+      font-family: 'Material Symbols Outlined';
+      font-size: 20px;
+      color: #2f6b5f;
+    }
+  }
+}
