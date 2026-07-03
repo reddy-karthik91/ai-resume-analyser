@@ -1,0 +1,13 @@
+// Ngx-toastr styles
+@use "ngx-toastr/toastr";
+
+/* You can add global styles to this file, and also import other style files */
+
+// Angular Material prebuilt theme
+@import "@angular/material/prebuilt-themes/indigo-pink.css";
+
+html, body {
+  height: 100%;
+  margin: 0;
+  font-family: Roboto, "Helvetica Neue", sans-serif;
+}
