@@ -1,0 +1,347 @@
+.results-container {
+  max-width: 1000px;
+  width: 100%;
+  margin: 32px auto;
+  padding: 0 24px;
+}
+
+.results-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 32px;
+  border-bottom: 1px solid #e5e5e5;
+  padding-bottom: 20px;
+
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1f1f1f;
+    margin: 0 0 4px;
+    letter-spacing: -0.02em;
+  }
+
+  .subtitle {
+    font-size: 0.9rem;
+    color: #666666;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+
+  .reset-button {
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    font-size: 0.85rem;
+    height: 38px;
+    border-radius: 8px;
+    border-color: #e5e5e5;
+    color: #1f1f1f;
+    letter-spacing: -0.01em;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: #f7f6f2;
+      border-color: #666666;
+    }
+
+    .btn-icon {
+      font-family: 'Material Symbols Outlined';
+      font-size: 18px;
+    }
+  }
+}
+
+.grid-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.card {
+  background-color: #ffffff;
+  border: 1px solid #e5e5e5;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+  }
+
+  .card-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #1f1f1f;
+    margin: 0 0 16px;
+    letter-spacing: -0.015em;
+
+    &.text-success {
+      color: #5c8a5f;
+    }
+
+    &.text-error {
+      color: #c25757;
+    }
+  }
+
+  .card-content {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #666666;
+    margin: 0;
+    letter-spacing: -0.01em;
+  }
+}
+
+/* ATS Score Circular Indicator style */
+.score-card {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+
+  @media (max-width: 480px) {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .score-radial {
+    position: relative;
+    width: 120px;
+    height: 120px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .progress-ring {
+      transform: rotate(-90deg);
+      
+      .progress-ring__circle {
+        transition: stroke-dashoffset 0.35s;
+        transform-origin: 50% 50%;
+      }
+    }
+
+    .score-text {
+      position: absolute;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      .number {
+        font-size: 2.1rem;
+        font-weight: 700;
+        color: #1f1f1f;
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+
+      .label {
+        font-size: 0.65rem;
+        text-transform: uppercase;
+        color: #666666;
+        letter-spacing: 0.05em;
+        margin-top: 2px;
+        font-weight: 500;
+      }
+    }
+  }
+
+  .score-summary {
+    flex: 1;
+    h3 {
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #1f1f1f;
+      margin: 0 0 8px;
+      letter-spacing: -0.015em;
+    }
+    p {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #666666;
+      margin: 0;
+      letter-spacing: -0.01em;
+    }
+  }
+}
+
+/* Points lists (Strengths / Weaknesses) */
+.points-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  li {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #666666;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    letter-spacing: -0.01em;
+
+    .success-icon {
+      font-family: 'Material Symbols Outlined';
+      color: #5c8a5f;
+      font-size: 18px;
+      margin-top: 1px;
+    }
+
+    .error-icon {
+      font-family: 'Material Symbols Outlined';
+      color: #c25757;
+      font-size: 18px;
+      margin-top: 1px;
+    }
+  }
+}
+
+/* Missing Skills tags */
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+
+  .skill-tag {
+    font-size: 0.8rem;
+    font-weight: 500;
+    color: #2f6b5f;
+    background-color: rgba(47, 107, 95, 0.05);
+    border: 1px solid rgba(47, 107, 95, 0.12);
+    padding: 6px 12px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    letter-spacing: -0.01em;
+
+    .tag-icon {
+      font-family: 'Material Symbols Outlined';
+      font-size: 12px;
+    }
+  }
+}
+
+/* Keyword grid */
+.keyword-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+
+  .keyword-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: #f7f6f2;
+    font-size: 0.82rem;
+    color: #666666;
+    letter-spacing: -0.01em;
+    font-weight: 400;
+
+    .status-icon {
+      font-family: 'Material Symbols Outlined';
+      font-size: 16px;
+      color: #c25757;
+    }
+
+    &.matched {
+      background-color: rgba(92, 138, 95, 0.05);
+      color: #1f1f1f;
+      font-weight: 500;
+      
+      .status-icon {
+        color: #5c8a5f;
+      }
+    }
+  }
+}
+
+/* Formatting reviews */
+.format-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+
+  .metric {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.88rem;
+    letter-spacing: -0.01em;
+
+    .label {
+      color: #666666;
+    }
+
+    .status {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 4px;
+      text-transform: uppercase;
+
+      &.status-pass {
+        background-color: rgba(92, 138, 95, 0.1);
+        color: #5c8a5f;
+      }
+
+      &.status-warning {
+        background-color: rgba(200, 138, 42, 0.1);
+        color: #c88a2a;
+      }
+    }
+  }
+}
+
+.formatting-hint {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: #666666;
+  margin: 0;
+  padding-top: 12px;
+  border-top: 1px solid #f7f6f2;
+  letter-spacing: -0.01em;
+}
+
+/* Numbered lists (Suggestions) */
+.numbered-list {
+  padding-left: 20px;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  li {
+    font-size: 0.9rem;
+    line-height: 1.5;
+    color: #666666;
+    letter-spacing: -0.015em;
+    
+    &::marker {
+      color: #2f6b5f;
+      font-weight: 600;
+    }
+  }
+}

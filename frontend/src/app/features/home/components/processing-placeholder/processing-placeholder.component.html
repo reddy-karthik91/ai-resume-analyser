@@ -1,0 +1,30 @@
+<div class="processing-container">
+  <div class="processing-card">
+    <div class="spinner-wrapper">
+      <div class="minimal-spinner"></div>
+    </div>
+    
+    <h2 class="processing-title">Analyzing Resume</h2>
+    <p class="processing-subtitle" *ngIf="fileName">Processing {{ fileName }}</p>
+    <p class="processing-subtitle" *ngIf="!fileName">Extracting document contents...</p>
+    
+    <div class="progress-wrapper">
+      <mat-progress-bar mode="indeterminate" class="custom-progress"></mat-progress-bar>
+    </div>
+    
+    <div class="status-steps">
+      <div class="step active">
+        <span class="dot"></span>
+        <span>Validating file schema</span>
+      </div>
+      <div class="step">
+        <span class="dot"></span>
+        <span>Extracting text content</span>
+      </div>
+      <div class="step">
+        <span class="dot"></span>
+        <span>Running AI analysis</span>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+<div class="app-layout">
+  <app-navbar></app-navbar>
+
+  <main class="main-content">
+    <ng-container [ngSwitch]="uiState()">
+      <!-- Idle State: Hero Header & File Ingestion Upload Card -->
+      <div *ngSwitchCase="'idle'" class="state-container fade-in">
+        <app-hero></app-hero>
+        <app-upload-card (fileSelected)="onFileSelected($event)"></app-upload-card>
+      </div>
+
+      <!-- Processing State: Progress Bars Spinner & Validations -->
+      <div *ngSwitchCase="'processing'" class="state-container fade-in">
+        <app-processing-placeholder [fileName]="fileName()"></app-processing-placeholder>
+      </div>
+
+      <!-- Results State: Assessment Dashboard Scorecard -->
+      <div *ngSwitchCase="'results'" class="state-container fade-in">
+        <app-results-placeholder [fileName]="fileName()" (reset)="onReset()"></app-results-placeholder>
+      </div>
+    </ng-container>
+  </main>
+
+  <app-footer></app-footer>
+</div>

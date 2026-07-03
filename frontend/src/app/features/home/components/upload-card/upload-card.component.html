@@ -1,0 +1,40 @@
+<div class="upload-container">
+  <div class="upload-area"
+       [class.drag-over]="isDragOver()"
+       (dragover)="onDragOver($event)"
+       (dragleave)="onDragLeave($event)"
+       (drop)="onDrop($event)"
+       (click)="fileInput.click()"
+       (keydown.enter)="fileInput.click()"
+       (keydown.space)="fileInput.click()"
+       tabindex="0"
+       role="button"
+       aria-label="Drag and drop PDF resume or click to select file">
+       
+    <input type="file" 
+           #fileInput 
+           class="file-input" 
+           (change)="onFileChange($event)" 
+           accept="application/pdf">
+
+    <div class="icon-wrapper">
+      <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+    </div>
+    
+    <h2 class="upload-title">Drag & drop your resume</h2>
+    <p class="upload-subtitle">or select a file from your device</p>
+    
+    <button mat-flat-button 
+            color="primary" 
+            class="upload-button"
+            (click)="$event.stopPropagation(); fileInput.click()">
+      Choose Resume
+    </button>
+    
+    <div class="file-specifications">
+      <span>PDF format only</span>
+      <span class="separator">&bull;</span>
+      <span>Max file size: 5MB</span>
+    </div>
+  </div>
+</div>
