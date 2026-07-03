@@ -1,0 +1,10 @@
+# docker-compose.yml
+# Future orchestration configuration for containerized local execution of:
+# 1. Angular Frontend client application
+# 2. Flask REST API backend server
+# 3. Cache store database (e.g., Redis) for parsing logs and analyses caches
+# 
+# (This is a placeholder config and container services will be detailed in later deployment phases).
+version: '3.8'
+
+services: {}

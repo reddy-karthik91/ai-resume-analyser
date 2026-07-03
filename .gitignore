@@ -102,3 +102,10 @@ coverage/
 *.env
 *.pem
 *.key
+
+# ==========================================
+# Project Specific Local Dirs
+# ==========================================
+backend/uploads/
+backend/logs/
+*.log
