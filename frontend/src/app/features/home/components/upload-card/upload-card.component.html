@@ -1,40 +1,119 @@
 <div class="upload-container">
-  <div class="upload-area"
-       [class.drag-over]="isDragOver()"
-       (dragover)="onDragOver($event)"
-       (dragleave)="onDragLeave($event)"
-       (drop)="onDrop($event)"
-       (click)="fileInput.click()"
-       (keydown.enter)="fileInput.click()"
-       (keydown.space)="fileInput.click()"
-       tabindex="0"
-       role="button"
-       aria-label="Drag and drop PDF resume or click to select file">
-       
-    <input type="file" 
-           #fileInput 
-           class="file-input" 
-           (change)="onFileChange($event)" 
-           accept="application/pdf">
+  @switch (uploadState().status) {
+    @case ('idle') {
+      <div class="upload-area"
+           [class.drag-over]="isDragOver()"
+           (dragover)="onDragOver($event)"
+           (dragleave)="onDragLeave($event)"
+           (drop)="onDrop($event)"
+           (click)="fileInput.click()"
+           (keydown.enter)="fileInput.click()"
+           (keydown.space)="fileInput.click()"
+           tabindex="0"
+           role="button"
+           aria-label="Drag and drop PDF resume or click to select file">
+           
+        <input type="file" 
+               #fileInput 
+               class="file-input" 
+               (change)="onFileChange($event)" 
+               accept="application/pdf">
 
-    <div class="icon-wrapper">
-      <span class="material-symbols-outlined upload-icon">cloud_upload</span>
-    </div>
+        <div class="icon-wrapper">
+          <span class="material-symbols-outlined upload-icon">cloud_upload</span>
+        </div>
+        
+        <h2 class="upload-title">Drag & drop your resume</h2>
+        <p class="upload-subtitle">or select a file from your device</p>
+        
+        <button mat-flat-button 
+                color="primary" 
+                class="upload-button"
+                (click)="$event.stopPropagation(); fileInput.click()">
+          Choose Resume
+        </button>
+        
+        <div class="file-specifications">
+          <span>PDF format only</span>
+          <span class="separator">&bull;</span>
+          <span>Max file size: 5MB</span>
+        </div>
+      </div>
+    }
     
-    <h2 class="upload-title">Drag & drop your resume</h2>
-    <p class="upload-subtitle">or select a file from your device</p>
+    @case ('uploading') {
+      <div class="upload-card-state uploading-state">
+        <div class="icon-wrapper animating">
+          <span class="material-symbols-outlined upload-icon spin-effect">sync</span>
+        </div>
+        
+        <h2 class="state-title">Uploading Resume</h2>
+        <p class="state-subtitle">Please wait while we secure your file...</p>
+        
+        <div class="progress-container">
+          <mat-progress-bar mode="determinate" [value]="uploadState().progress" class="custom-progress-bar"></mat-progress-bar>
+          <span class="progress-percentage">{{ uploadState().progress }}%</span>
+        </div>
+
+        <button mat-stroked-button class="cancel-button" (click)="cancelUpload()">
+          Cancel Upload
+        </button>
+      </div>
+    }
     
-    <button mat-flat-button 
-            color="primary" 
-            class="upload-button"
-            (click)="$event.stopPropagation(); fileInput.click()">
-      Choose Resume
-    </button>
+    @case ('success') {
+      <div class="upload-card-state success-state">
+        <div class="icon-wrapper success">
+          <span class="material-symbols-outlined upload-icon text-success">check_circle</span>
+        </div>
+        
+        <h2 class="state-title">Upload Successful</h2>
+        <p class="state-subtitle">Your resume is ready for analysis.</p>
+
+        @if (uploadState().metadata; as meta) {
+          <div class="metadata-table">
+            <div class="metadata-row">
+              <span class="label">Upload ID</span>
+              <span class="value code-text">{{ meta.uploadId }}</span>
+            </div>
+            <div class="metadata-row">
+              <span class="label">Original File</span>
+              <span class="value">{{ meta.originalFilename }}</span>
+            </div>
+            <div class="metadata-row">
+              <span class="label">Saved Path</span>
+              <span class="value code-text">{{ meta.storedFilename }}</span>
+            </div>
+            <div class="metadata-row">
+              <span class="label">File Size</span>
+              <span class="value">{{ (meta.fileSize / 1024 / 1024) | number:'1.2-2' }} MB</span>
+            </div>
+            <div class="metadata-row">
+              <span class="label">Uploaded At</span>
+              <span class="value">{{ meta.uploadedAt | date:'medium' }}</span>
+            </div>
+          </div>
+        }
+
+        <button mat-flat-button class="upload-button" (click)="resetCard()">
+          Upload Another
+        </button>
+      </div>
+    }
     
-    <div class="file-specifications">
-      <span>PDF format only</span>
-      <span class="separator">&bull;</span>
-      <span>Max file size: 5MB</span>
-    </div>
-  </div>
+    @case ('error') {
+      <div class="upload-card-state error-state">
+        <div class="icon-wrapper error">
+          <span class="material-symbols-outlined upload-icon text-error">warning</span>
+        </div>
+        
+        <h2 class="state-title">Upload Failed</h2>
+        <p class="state-subtitle text-error">{{ uploadState().errorMessage }}</p>
+
+        <button mat-flat-button class="retry-button" (click)="resetCard()">
+          Try Again
+        </button>
+      </div>
+    }
+  }
 </div>

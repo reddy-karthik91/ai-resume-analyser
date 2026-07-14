@@ -4,17 +4,21 @@ from dotenv import load_dotenv
 # Load environment variables prior to internal configuration imports
 load_dotenv()
 
-from flask import Flask
+from flask import Flask, jsonify
 from flask_cors import CORS
+from werkzeug.exceptions import HTTPException
 
 from app.config.settings import config_by_name
-from app.routes.health_routes import health_bp
+from app.api.health_routes import health_bp
+from app.api.resumes_routes import resumes_bp
+from app.exceptions.api_exceptions import APIException
+from app.schemas.error_response import ErrorResponseSchema
 
 def create_app(config_name=None):
     """Flask Application Factory.
     
     Instantiates and configures the Flask application instance, enables CORS,
-    and registers blueprints.
+    registers blueprints, and configures global error handlers.
     """
     if config_name is None:
         config_name = os.getenv("FLASK_ENV", "development")
@@ -30,5 +34,42 @@ def create_app(config_name=None):
 
     # Register application blueprints
     app.register_blueprint(health_bp)
+    app.register_blueprint(resumes_bp)
+
+    # Register global error handlers
+    @app.errorhandler(APIException)
+    def handle_api_exception(error):
+        """Handle custom API exceptions and return standardized error payload."""
+        errors_list = getattr(error, "errors", [])
+        if not errors_list:
+            errors_list = [error.message]
+            
+        error_schema = ErrorResponseSchema(
+            message=error.message,
+            errors=errors_list
+        )
+        return jsonify(error_schema.to_dict()), error.status_code
+
+    @app.errorhandler(HTTPException)
+    def handle_http_exception(error):
+        """Handle standard HTTP errors (e.g. 404, 405) and return standardized error payload."""
+        error_schema = ErrorResponseSchema(
+            message=error.description,
+            errors=[error.description]
+        )
+        return jsonify(error_schema.to_dict()), error.code
+
+    @app.errorhandler(Exception)
+    def handle_generic_exception(error):
+        """Handle unhandled server exceptions and return standardized error payload."""
+        app.logger.error(f"Unhandled Exception: {str(error)}", exc_info=True)
+        
+        errors_list = [str(error)] if app.debug else ["An unexpected server error occurred."]
+        error_schema = ErrorResponseSchema(
+            message="An unexpected server error occurred.",
+            errors=errors_list
+        )
+        return jsonify(error_schema.to_dict()), 500
 
     return app
+
