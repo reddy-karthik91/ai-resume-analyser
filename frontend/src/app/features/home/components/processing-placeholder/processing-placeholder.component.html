@@ -13,17 +13,17 @@
     </div>
     
     <div class="status-steps">
-      <div class="step active">
+      <div class="step" [class.active]="activeStep() === 0">
         <span class="dot"></span>
-        <span>Validating file schema</span>
+        <span>Parsing PDF...</span>
       </div>
-      <div class="step">
+      <div class="step" [class.active]="activeStep() === 1">
         <span class="dot"></span>
-        <span>Extracting text content</span>
+        <span>Generating AI Analysis...</span>
       </div>
-      <div class="step">
+      <div class="step" [class.active]="activeStep() === 2">
         <span class="dot"></span>
-        <span>Running AI analysis</span>
+        <span>Preparing Results...</span>
       </div>
     </div>
   </div>

@@ -66,6 +66,13 @@ class FilesystemDocumentRepository(DocumentRepository):
 
     def save(self, entry: DocumentIndexEntry) -> None:
         """Thread-safe save or update of a document metadata entry."""
+        from uuid import UUID
+        doc_id = entry.document_id
+        try:
+            doc_id = str(UUID(doc_id))
+        except ValueError:
+            pass
+
         with self._lock:
             index = self._load_index()
             
@@ -78,8 +85,8 @@ class FilesystemDocumentRepository(DocumentRepository):
                 # Clean up +00:00 to Z
                 iso_timestamp = iso_timestamp[:-6] + "Z"
 
-            index[entry.document_id] = {
-                "document_id": entry.document_id,
+            index[doc_id] = {
+                "document_id": doc_id,
                 "original_filename": entry.original_filename,
                 "stored_filename": entry.stored_filename,
                 "file_size": entry.file_size,
@@ -90,7 +97,7 @@ class FilesystemDocumentRepository(DocumentRepository):
             logger.info(
                 "Document metadata indexed successfully",
                 extra={
-                    "document_id": entry.document_id,
+                    "document_id": doc_id,
                     "stored_filename": entry.stored_filename,
                     "original_filename": entry.original_filename,
                     "file_size": entry.file_size,
@@ -100,9 +107,16 @@ class FilesystemDocumentRepository(DocumentRepository):
 
     def get(self, document_id: str) -> Optional[DocumentIndexEntry]:
         """Thread-safe retrieval of a document metadata entry."""
+        from uuid import UUID
+        doc_id = document_id
+        try:
+            doc_id = str(UUID(doc_id))
+        except ValueError:
+            pass
+
         with self._lock:
             index = self._load_index()
-            data = index.get(document_id)
+            data = index.get(doc_id)
             if not data:
                 return None
             
@@ -118,7 +132,7 @@ class FilesystemDocumentRepository(DocumentRepository):
                 logger.error(
                     "Invalid date format in document index entry.",
                     extra={
-                        "document_id": document_id,
+                        "document_id": doc_id,
                         "uploaded_at_raw": data["uploaded_at"],
                         "exception_type": type(e).__name__
                     }

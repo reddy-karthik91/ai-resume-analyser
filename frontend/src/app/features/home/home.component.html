@@ -2,21 +2,50 @@
   <app-navbar></app-navbar>
 
   <main class="main-content">
-    <ng-container [ngSwitch]="uiState()">
-      <!-- Idle State: Hero Header & File Ingestion Upload Card -->
+    <ng-container [ngSwitch]="state().status">
+      <!-- Idle / Uploading State: Hero Header & File Ingestion Upload Card -->
       <div *ngSwitchCase="'idle'" class="state-container fade-in">
         <app-hero></app-hero>
-        <app-upload-card (fileSelected)="onFileSelected($event)"></app-upload-card>
+        <app-upload-card 
+          (fileSelected)="onFileSelected($event)"
+          (uploadCompleted)="onUploadCompleted($event)"
+          (uploadFailed)="onUploadFailed($event)">
+        </app-upload-card>
+      </div>
+      
+      <div *ngSwitchCase="'uploading'" class="state-container fade-in">
+        <app-hero></app-hero>
+        <app-upload-card 
+          (fileSelected)="onFileSelected($event)"
+          (uploadCompleted)="onUploadCompleted($event)"
+          (uploadFailed)="onUploadFailed($event)">
+        </app-upload-card>
       </div>
 
       <!-- Processing State: Progress Bars Spinner & Validations -->
       <div *ngSwitchCase="'processing'" class="state-container fade-in">
-        <app-processing-placeholder [fileName]="fileName()"></app-processing-placeholder>
+        <app-processing-placeholder [fileName]="state().fileName"></app-processing-placeholder>
       </div>
 
       <!-- Results State: Assessment Dashboard Scorecard -->
-      <div *ngSwitchCase="'results'" class="state-container fade-in">
-        <app-results-placeholder [fileName]="fileName()" (reset)="onReset()"></app-results-placeholder>
+      <div *ngSwitchCase="'completed'" class="state-container fade-in">
+        <app-results-placeholder 
+          [fileName]="state().fileName" 
+          [result]="state().result!" 
+          (reset)="onReset()">
+        </app-results-placeholder>
+      </div>
+
+      <!-- Error State: Friendly failure message and retry button -->
+      <div *ngSwitchCase="'error'" class="state-container fade-in error-wrapper text-center" style="padding: 40px; text-align: center;">
+        <span class="material-symbols-outlined error-icon" style="font-size: 64px; color: #dc3545;">warning</span>
+        <h2 style="margin-top: 16px; font-weight: 600; color: #333;">Analysis Failed</h2>
+        <p style="color: #666; margin-top: 8px; margin-bottom: 24px; max-width: 450px; margin-left: auto; margin-right: auto; line-height: 1.5;">
+          {{ state().errorMessage || 'An unexpected error occurred during resume analysis.' }}
+        </p>
+        <button mat-flat-button color="primary" (click)="onReset()">
+          Try Again
+        </button>
       </div>
     </ng-container>
   </main>

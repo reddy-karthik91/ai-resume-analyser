@@ -1,12 +1,14 @@
 import os
 import logging
 from flask import current_app
+from uuid import UUID
 from app.repositories.document.document_repository import DocumentRepository
 from app.services.pdf_parser_service import PdfParserService
 from app.services.upload_service import UploadService
 from app.schemas.document.file_info import DocumentFileInfo
 from app.schemas.document.parsed_document import ParsedDocument
 from app.schemas.upload_schema import UploadMetadataSchema
+from app.schemas.analysis.resume_analysis_result import ResumeAnalysisResult
 from app.exceptions.validation_exceptions import ValidationException
 
 logger = logging.getLogger(__name__)
@@ -19,10 +21,22 @@ class ResumeAnalysisPipeline:
     It receives all dependencies via constructor dependency injection.
     """
 
-    def __init__(self, repository: DocumentRepository, parser_service: PdfParserService, upload_service: UploadService):
+    def __init__(
+        self,
+        repository: DocumentRepository,
+        parser_service: PdfParserService,
+        upload_service: UploadService,
+        prompt_builder_service=None,
+        llm_service=None,
+        analysis_formatter_service=None,
+        gemini_service=None
+    ):
         self.repository = repository
         self.parser_service = parser_service
         self.upload_service = upload_service
+        self.prompt_builder_service = prompt_builder_service
+        self.llm_service = llm_service or gemini_service
+        self.analysis_formatter_service = analysis_formatter_service
 
     def upload_resume(self, file) -> UploadMetadataSchema:
         """
@@ -121,14 +135,55 @@ class ResumeAnalysisPipeline:
         # TODO: Implement in Sprint 4
         pass
 
-    def analyze_resume(self, prompt: str) -> str:
+    def analyze_resume(self, document_id) -> ResumeAnalysisResult:
         """
-        [PLACEHOLDER] Call the LLM (OpenAI API) to perform ATS analysis on the resume.
+        Coordinates the complete AI resume analysis flow.
         
-        Planned for Sprint 4: Will delegate to OpenAIService.
+        Args:
+            document_id: The document identifier (UUID string or UUID object).
+            
+        Returns:
+            A strongly-typed, fully validated ResumeAnalysisResult aggregate DTO.
         """
-        # TODO: Implement in Sprint 4
-        pass
+        doc_uuid = UUID(document_id) if isinstance(document_id, str) else document_id
+        
+        logger.info(
+            "Pipeline analyze resume initiated",
+            extra={
+                "document_id": str(doc_uuid),
+                "processing_stage": "Analysis Start"
+            }
+        )
+        
+        # 1. Retrieve ParsedDocument
+        parsed_doc = self.parse_resume(str(doc_uuid))
+        
+        # Verify required service injections
+        if not self.prompt_builder_service:
+            raise RuntimeError("prompt_builder_service is not configured in ResumeAnalysisPipeline.")
+        if not self.llm_service:
+            raise RuntimeError("llm_service is not configured in ResumeAnalysisPipeline.")
+        if not self.analysis_formatter_service:
+            raise RuntimeError("analysis_formatter_service is not configured in ResumeAnalysisPipeline.")
+            
+        # 2. Compile PromptRequest using PromptBuilderService
+        prompt_request = self.prompt_builder_service.build_prompt(parsed_doc)
+        
+        # 3. Execute using LLMService yielding PromptResponse
+        prompt_response = self.llm_service.generate(prompt_request)
+        
+        # 4. Format PromptResponse into ResumeAnalysisResult
+        analysis_result = self.analysis_formatter_service.format(doc_uuid, prompt_response)
+        
+        logger.info(
+            "Pipeline analyze resume completed successfully",
+            extra={
+                "document_id": str(doc_uuid),
+                "processing_stage": "Analysis Complete"
+            }
+        )
+        
+        return analysis_result
 
     def format_response(self, raw_analysis: str) -> dict:
         """

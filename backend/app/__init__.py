@@ -1,8 +1,10 @@
 import os
 from dotenv import load_dotenv
 
-# Load environment variables prior to internal configuration imports
-load_dotenv()
+# Load environment variables prior to internal configuration imports with explicit absolute path
+base_dir = os.path.dirname(os.path.abspath(__file__))
+dotenv_path = os.path.join(os.path.dirname(base_dir), ".env")
+load_dotenv(dotenv_path=dotenv_path)
 
 from flask import Flask, jsonify
 from flask_cors import CORS
@@ -49,19 +51,49 @@ def create_app(config_name=None):
     from app.services.pdf_parser_service import PdfParserService
     from app.services.resume_analysis_pipeline import ResumeAnalysisPipeline
 
+    from app.services.prompt_builder_service import PromptBuilderService
+    from app.services.analysis_formatter_service import AnalysisFormatterService
+    from app.services.gemini_service import GeminiService
+    from app.services.groq_service import GroqService
+
     repository = FilesystemDocumentRepository()
     storage_service = FileStorageService(repository=repository)
     upload_service = UploadService(storage_service=storage_service)
     parser_service = PdfParserService()
+    prompt_builder_service = PromptBuilderService()
+    analysis_formatter_service = AnalysisFormatterService()
+
+    provider = os.getenv("LLM_PROVIDER", app.config.get("LLM_PROVIDER", "groq")).lower()
+    if provider == "groq":
+        llm_service = GroqService(
+            api_key=app.config.get("GROQ_API_KEY"),
+            default_model=app.config.get("DEFAULT_LLM_MODEL"),
+            timeout_seconds=app.config.get("REQUEST_TIMEOUT_SECONDS"),
+            max_retries=app.config.get("LLM_MAX_RETRIES"),
+            retry_delay_seconds=app.config.get("LLM_RETRY_DELAY_SECONDS")
+        )
+    else:
+        llm_service = GeminiService(
+            api_key=app.config.get("GEMINI_API_KEY"),
+            default_model=app.config.get("DEFAULT_LLM_MODEL"),
+            timeout_seconds=app.config.get("REQUEST_TIMEOUT_SECONDS"),
+            max_retries=app.config.get("LLM_MAX_RETRIES"),
+            retry_delay_seconds=app.config.get("LLM_RETRY_DELAY_SECONDS")
+        )
 
     pipeline = ResumeAnalysisPipeline(
         repository=repository,
         parser_service=parser_service,
-        upload_service=upload_service
+        upload_service=upload_service,
+        prompt_builder_service=prompt_builder_service,
+        llm_service=llm_service,
+        analysis_formatter_service=analysis_formatter_service
     )
 
-    # Register composed orchestrator pipeline in the standard Flask extension registry
+    # Register composed orchestrator pipeline and services in the extensions registry
     app.extensions["resume_pipeline"] = pipeline
+    app.extensions["llm_service"] = llm_service
+    app.extensions["analysis_formatter_service"] = analysis_formatter_service
 
     # Register application blueprints
     app.register_blueprint(health_bp)
