@@ -32,17 +32,8 @@ ai-resume-analyzer/
 │   │   ├── app/              # Main application module
 │   │   │   ├── core/         # Core utilities & singleton configs
 │   │   │   │   ├── http/     # HTTP api service, interceptor, and endpoints mapping
-│   │   │   │   ├── services/
-│   │   │   │   ├── interceptors/
-│   │   │   │   ├── guards/
-│   │   │   │   ├── constants/
-│   │   │   │   ├── utils/
-│   │   │   │   └── models/
+│   │   │   │   └── ...
 │   │   │   ├── shared/       # Shared UI presentation files
-│   │   │   │   ├── components/
-│   │   │   │   ├── directives/
-│   │   │   │   ├── pipes/
-│   │   │   │   └── interfaces/
 │   │   │   ├── features/     # Feature-scoped modules (with README checklists)
 │   │   │   │   ├── home/
 │   │   │   │   ├── upload/
@@ -50,9 +41,6 @@ ai-resume-analyzer/
 │   │   │   │   ├── history/
 │   │   │   │   └── settings/
 │   │   │   └── layouts/      # Main and Auth layout structures
-│   │   │       ├── main-layout/
-│   │   │       └── auth-layout/
-│   │   └── assets/           # Static images, styles, and custom typography assets
 │   ├── angular.json          # Angular CLI configuration
 │   ├── package.json          # Frontend dependency manifest
 │   └── ...
@@ -61,29 +49,22 @@ ai-resume-analyzer/
 │   ├── app/                  # Core application package (Factory pattern)
 │   │   ├── api/              # API blueprint controllers and route handlers
 │   │   ├── services/         # Business logic services
-│   │   ├── utils/            # Shared helper functions and utilities
-│   │   ├── middleware/       # Custom request interceptors and CORS configs
-│   │   ├── prompts/          # OpenAI prompts templates
-│   │   ├── models/           # Data models/schema schemas
+│   │   ├── repositories/     # Repository layer (isolated domain-driven lookups)
+│   │   ├── schemas/          # Centralized Pydantic/dataclass schema definitions
 │   │   ├── exceptions/       # Custom Exceptions (InvalidResume, UnsupportedFile, etc.)
-│   │   ├── schemas/          # Centralized Pydantic validation schemas placeholders
-│   │   ├── extensions/       # Flask integrations loaders (CORS, logging, db initializations)
-│   │   ├── constants/        # Centralized app constants (limits, prefixes)
-│   │   └── __init__.py       # Application factory initialization
+│   │   └── __init__.py       # Application factory initialization (Composition Root)
 │   │
 │   ├── uploads/              # Local storage folder for uploaded resumes (Git-ignored)
-│   ├── logs/                 # Application log directory (Git-ignored)
+│   ├── storage/              # Centralized JSON metadata index persistence directory
 │   ├── tests/                # Unit and integration tests
 │   ├── .venv/                # Python 3.9.6 virtual environment (Git-ignored)
-│   ├── .env                  # Active environment variables configuration
-│   ├── .env.example          # Environment variables template file
 │   ├── requirements.txt      # Python dependencies manifest
 │   └── run.py                # Server entry point
 │
 ├── docs/                     # API and system documentation
 ├── README.md                 # Project overview and onboarding instructions
 ├── Implementation.md         # Active verification log and architecture plan
-└── .gitignore                # Version control exclusion rules
+└── PROJECT_PROGRESS.md       # Milestones progress log
 ```
 
 ---
@@ -114,20 +95,33 @@ Inside the `frontend/` directory:
 ## 🐙 5. Version Control Setup
 
 * **Git Initialized**: Executed `git init` in project root directory.
-* **Ignore Configuration**: Generated comprehensive `.gitignore` file excluding:
-  * Python cache files (`__pycache__`, `*.pyc`), `.venv/`, test coverage artifacts.
-  * Angular build output (`dist/`, `.angular/`), `node_modules/`.
-  * Operating System files (`.DS_Store`).
-  * IDE configurations (`.vscode/*`, `.idea/`).
-  * Environment variables (`.env`, `*.env`).
+* **Ignore Configuration**: Generated comprehensive `.gitignore` file.
 
 ---
 
-## 📖 6. Documentation
+## 🚀 6. Sprint 2: Resume Upload Feature (Completed)
 
-* **README.md**: Authored project documentation detailing:
-  * Application overview & objectives.
-  * High-level client/server/AI architecture ASCII diagram.
-  * Technology stack summary.
-  * Monorepo folder breakdown and developer onboarding instructions.
-* **Implementation.md**: Created this execution tracking document.
+* **Multi-Layer Validation**: Designed and implemented file schema validation mapping PDF extensions, file sizes, and MIME types.
+* **FileStorageService**: Isolate physical file writes and directory resolutions securely.
+* **API Success Envelopes**: Deployed standardized API response envelopes returning generated UUID identifiers and timestamps.
+* **Angular Card Component**: Created responsive upload card featuring determinate progress bar animation, state signals, and cancellation logic.
+
+---
+
+## 📄 7. Sprint 3: Document Repository & Text Extraction (Completed)
+
+* **ParsedDocument Domain DTOs**: Created frozen aggregate schemas representing document statistics and page text segments.
+* **Document Repository Layer**:
+  - Defined abstract `DocumentRepository` contract interface.
+  - Implemented `FilesystemDocumentRepository` utilizing a centralized JSON index, thread-safe locking mechanisms, and automatic index corruption recovery.
+* **PdfParserService**: Programmed PyMuPDF text extractor engine that sequentializes pages, cleans spacing formats, and audits metadata-only operational telemetry.
+* **Composition Root & Extension registry**: Configured dependency composition at Flask `create_app` factory level and bound pipeline orchestrator under `app.extensions["resume_pipeline"]`.
+* **API Processing Endpoint**: Implemented processing API handler `POST /api/v1/resumes/<document_id>/process`.
+
+---
+
+## 📅 8. Next Milestones (Sprint 4: AI Analysis Integration)
+
+- **PromptBuilderService**: Compile dynamic context prompt layouts combining extracted PDF text and ATS criteria templates.
+- **OpenAIService**: Manage connections with ChatCompletion endpoints.
+- **AnalysisFormatterService**: Normalize raw LLM outputs to standardized analysis reports.

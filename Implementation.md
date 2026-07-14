@@ -11,19 +11,23 @@ Angular Frontend
         │
         │ Upload PDF
         ▼
-Flask REST API (/api/v1/resumes/upload)
+Flask REST API (/api/v1/resumes/upload & /api/v1/resumes/<id>/process)
         │
         ▼
 ResumeAnalysisPipeline (Orchestrator)
         │
-        ├── 1. UploadService / FileStorageService (Validate & write file to disk)
-        ├── 2. PdfParserService (Planned: Extract text using PyMuPDF)
+        ├── 1. UploadService / FileStorageService (Validate, write to disk, index metadata)
+        │     └── DocumentRepository / FilesystemDocumentRepository (Centralized JSON index storage)
+        ├── 2. PdfParserService (Extract text using PyMuPDF)
         ├── 3. PromptBuilderService (Planned: Construct prompts)
         ├── 4. OpenAIService (Planned: LLM analysis)
         └── 5. AnalysisFormatterService (Planned: Structure responses)
         │
         ▼
 JSON Response (Standard API Response format)
+        │
+        ▼
+Angular Dashboard (Planned)
         │
         ▼
 Angular Dashboard (Planned)
@@ -314,16 +318,15 @@ Inside the `frontend/` directory (planned):
 * [x] Base project documentation
 
 ### In Progress
-* [/] PDF text extraction design (Sprint 3: PdfParserService)
-* [/] AI analysis integration design (Sprint 4: OpenAIService)
+* [/] OpenAI prompt building and LLM analysis design (Sprint 4: OpenAIService)
 
 ### Planned
 * [x] Environment setup and configurations
 * [x] REST health endpoint bootstrap
 * [x] File upload endpoint, storage mapping, and validations (Completed)
 * [x] Pipeline architecture refinement (Completed)
-* [ ] PDF text extraction implementation (Sprint 3)
-* [ ] OpenAI prompt building and LLM analysis (Sprint 4)
+* [x] PDF text extraction and repository index layer (Completed)
+* [ ] OpenAI prompt building and LLM analysis implementation (Sprint 4)
 * [ ] Angular dashboard results UI implementation
 * [ ] Cloud deployment and CI/CD pipelines
 

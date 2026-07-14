@@ -7,9 +7,9 @@ class APIException(Exception):
     message = "An unexpected server error occurred."
 
     def __init__(self, message=None, status_code=None, payload=None):
-        super().__init__()
         if message is not None:
             self.message = message
+        super().__init__(self.message)
         if status_code is not None:
             self.status_code = status_code
         self.payload = payload

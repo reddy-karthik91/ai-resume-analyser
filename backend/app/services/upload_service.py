@@ -14,8 +14,8 @@ from app.constants.file_constants import (
 class UploadService:
     """Orchestration service for validating, processing, and saving resume uploads."""
 
-    def __init__(self, storage_service: FileStorageService = None):
-        self.storage_service = storage_service or FileStorageService()
+    def __init__(self, storage_service: FileStorageService):
+        self.storage_service = storage_service
 
     def _validate_layer1_extension(self, filename: str) -> None:
         """Layer 1 Validation: Check file extension (case-insensitive)."""
@@ -100,16 +100,4 @@ class UploadService:
             raise Exception("UPLOAD_FOLDER configuration is missing in Flask app config.")
 
         # Delegate storage persistence to storage service
-        storage_meta = self.storage_service.save_file(file, upload_dir)
-
-        # Extract uploadId from the stored unique filename (first part before underscore)
-        stored_filename = storage_meta["storedFilename"]
-        upload_id = stored_filename.split("_")[0]
-
-        return UploadMetadataSchema(
-            uploadId=upload_id,
-            originalFilename=filename,
-            storedFilename=stored_filename,
-            fileSize=storage_meta["fileSize"],
-            uploadedAt=storage_meta["uploadedAt"]
-        )
+        return self.storage_service.save_file(file, upload_dir)

@@ -20,6 +20,16 @@ def create_app(config_name=None):
     Instantiates and configures the Flask application instance, enables CORS,
     registers blueprints, and configures global error handlers.
     """
+    import sys
+    import logging
+
+    if not logging.getLogger().handlers:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="[%(asctime)s] %(levelname)s in %(module)s: %(message)s",
+            handlers=[logging.StreamHandler(sys.stdout)]
+        )
+
     if config_name is None:
         config_name = os.getenv("FLASK_ENV", "development")
 
@@ -31,6 +41,27 @@ def create_app(config_name=None):
 
     # Enable Cross-Origin Resource Sharing (CORS) for frontend integration
     CORS(app)
+
+    # Import and compose backend services and repositories (Composition Root)
+    from app.repositories.document.filesystem_document_repository import FilesystemDocumentRepository
+    from app.services.file_storage_service import FileStorageService
+    from app.services.upload_service import UploadService
+    from app.services.pdf_parser_service import PdfParserService
+    from app.services.resume_analysis_pipeline import ResumeAnalysisPipeline
+
+    repository = FilesystemDocumentRepository()
+    storage_service = FileStorageService(repository=repository)
+    upload_service = UploadService(storage_service=storage_service)
+    parser_service = PdfParserService()
+
+    pipeline = ResumeAnalysisPipeline(
+        repository=repository,
+        parser_service=parser_service,
+        upload_service=upload_service
+    )
+
+    # Register composed orchestrator pipeline in the standard Flask extension registry
+    app.extensions["resume_pipeline"] = pipeline
 
     # Register application blueprints
     app.register_blueprint(health_bp)
