@@ -148,6 +148,26 @@ npm install
 
 ---
 
+## 📡 API Endpoints & Storage
+
+### REST API Endpoints
+
+1. **Upload Resume**: `POST /api/v1/resumes/upload`
+   - Accepts `multipart/form-data` with a `file` field containing a PDF (Max 5 MB).
+   - Validates file size, extension, and MIME type.
+   - Generates a unique stored name: `<uuid>_<timestamp>.pdf`.
+   - Returns standard upload metadata (including `uploadId` and `storedFilename`).
+
+2. **Process Document**: `POST /api/v1/resumes/<string:document_id>/process`
+   - Retrieves the document metadata from the repository index, locates the PDF on disk, parses it page-by-page using PyMuPDF, normalizes spacings, and returns the composed `ParsedDocument` DTO.
+
+### Storage & Repository Layer
+
+- **Binary Files**: PDF files are saved locally under `backend/uploads/`.
+- **Metadata Index**: Persistent metadata records are managed by `FilesystemDocumentRepository` and stored in a single JSON index file at `backend/storage/documents/index.json`. Read/write access is protected by a `threading.Lock` to prevent concurrent corruption.
+
+---
+
 ## 🏃 Running the Application
 
 To run the application locally, open two separate terminal windows or tabs:

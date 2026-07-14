@@ -1,10 +1,10 @@
-from flask import Blueprint, request, jsonify
-from app.services.resume_analysis_pipeline import ResumeAnalysisPipeline
+from datetime import datetime
+from dataclasses import asdict
+from flask import Blueprint, request, jsonify, current_app
 from app.schemas.upload_response import UploadResponseSchema
 from app.exceptions.validation_exceptions import ValidationException
 
 resumes_bp = Blueprint("resumes", __name__)
-pipeline = ResumeAnalysisPipeline()
 
 @resumes_bp.route("/api/v1/resumes/upload", methods=["POST"])
 def upload_resume():
@@ -27,10 +27,11 @@ def upload_resume():
             errors=["No selected file"]
         )
 
+    # Retrieve pipeline orchestrator from extension registry composition root
+    pipeline = current_app.extensions["resume_pipeline"]
+
     # Orchestrate validation and saving via the ResumeAnalysisPipeline
     metadata = pipeline.upload_resume(file)
-
-
 
     # Format output according to standard API contract
     response_schema = UploadResponseSchema(
@@ -39,3 +40,35 @@ def upload_resume():
     )
 
     return jsonify(response_schema.to_dict()), 201
+
+
+@resumes_bp.route("/api/v1/resumes/<string:document_id>/process", methods=["POST"])
+def process_resume(document_id):
+    """
+    Route handler to process an already uploaded resume document (by parsing it).
+    
+    Provides a synchronous execution placeholder mapping to the target AI workflow.
+    """
+    # Retrieve pipeline orchestrator from extension registry composition root
+    pipeline = current_app.extensions["resume_pipeline"]
+
+    # Parse and extract text using the pipeline
+    parsed_doc = pipeline.parse_resume(str(document_id))
+
+    # Serialize DTO aggregate recursively
+    serialized_doc = asdict(parsed_doc)
+    
+    # Convert custom classes/types to standard JSON serializable string formats
+    serialized_doc["document_id"] = str(serialized_doc["document_id"])
+    serialized_doc["document_type"] = serialized_doc["document_type"].value
+
+    # Construct standard response envelope
+    response_payload = {
+        "success": True,
+        "message": "Resume parsed successfully.",
+        "data": serialized_doc,
+        "errors": None,
+        "timestamp": datetime.utcnow().isoformat() + "Z"
+    }
+
+    return jsonify(response_payload), 200
