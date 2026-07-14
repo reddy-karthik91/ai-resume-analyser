@@ -8,29 +8,26 @@ AI Resume Analyzer is an intelligent, automated candidate resume analysis and ev
 
 ```text
 Angular Frontend
-│
-│ HTTP / REST API
-▼
-Flask Backend
-│
-▼
-Resume Upload API
-│
-▼
-PyMuPDF Text Extraction
-│
-▼
-Prompt Builder
-│
-▼
-OpenAI API
-│
-▼
-Structured JSON Response
-│
-▼
-Angular Dashboard
+        │
+        │ HTTP / REST API
+        ▼
+Flask Backend (POST /api/v1/resumes/upload)
+        │
+        ▼
+ResumeAnalysisPipeline (Orchestration Layer)
+        ├─► UploadService / FileStorageService (Validate & write file to disk)
+        ├─► PdfParserService (Planned: Extract text using PyMuPDF)
+        ├─► PromptBuilderService (Planned: Build prompt layout)
+        ├─► OpenAIService (Planned: Connect to ChatCompletion API)
+        └─► AnalysisFormatterService (Planned: Normalize analysis response)
+        │
+        ▼
+Standardized JSON Response
+        │
+        ▼
+Angular Dashboard (Planned)
 ```
+
 
 ---
 
@@ -129,28 +126,47 @@ cd ai-resume-analyser
 ### 2. Backend Setup
 ```bash
 cd backend
-# Create virtual environment (if not already created)
+# Create virtual environment
 python3 -m venv .venv
 
 # Activate virtual environment
-# On macOS/Linux:
 source .venv/bin/activate
-# On Windows:
-# .venv\Scripts\activate
 
-# Upgrade pip and install dependencies
-pip install --upgrade pip
-# To install the package overrides for Python 3.9 compatibility:
-# pip install -r requirements.txt
+# Install dependencies
+pip install -r requirements.txt
+
+# Create environment variables file
+cp .env.example .env
 ```
 
 ### 3. Frontend Setup
 ```bash
 cd ../frontend
-# Angular project initialization placeholder
-# npm install
-# ng serve
+# Install Node dependencies
+npm install
 ```
+
+---
+
+## 🏃 Running the Application
+
+To run the application locally, open two separate terminal windows or tabs:
+
+### Tab A: Start the Flask Backend
+```bash
+cd backend
+source .venv/bin/activate
+python run.py
+```
+*The backend REST API will run at `http://localhost:5001`.*
+
+### Tab B: Start the Angular Frontend
+```bash
+cd frontend
+npm start
+```
+*The Angular app will compile and serve at `http://localhost:4200`.*
+
 
 ---
 

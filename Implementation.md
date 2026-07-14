@@ -11,29 +11,24 @@ Angular Frontend
         │
         │ Upload PDF
         ▼
-Flask REST API
+Flask REST API (/api/v1/resumes/upload)
         │
         ▼
-Resume Upload Endpoint
+ResumeAnalysisPipeline (Orchestrator)
+        │
+        ├── 1. UploadService / FileStorageService (Validate & write file to disk)
+        ├── 2. PdfParserService (Planned: Extract text using PyMuPDF)
+        ├── 3. PromptBuilderService (Planned: Construct prompts)
+        ├── 4. OpenAIService (Planned: LLM analysis)
+        └── 5. AnalysisFormatterService (Planned: Structure responses)
         │
         ▼
-PDF Validation
+JSON Response (Standard API Response format)
         │
         ▼
-PyMuPDF
-        │
-        ▼
-Prompt Builder
-        │
-        ▼
-OpenAI API
-        │
-        ▼
-JSON Response
-        │
-        ▼
-Angular Dashboard
+Angular Dashboard (Planned)
 ```
+
 
 ---
 
@@ -147,7 +142,15 @@ The design of the AI Resume Analyzer monorepo is guided by several core engineer
 
 ### Backend Component Responsibilities
 * **`app/api/`**: Declares API Blueprints, handles controller routing, maps HTTP methods, executes initial validation on requests, and formats JSON responses with standard status codes.
-* **`app/services/`**: Orchestrates resume parsing operations (via PyMuPDF) and OpenAI communications. Houses core algorithmic calculations, formatting, and analysis logic.
+* **`app/services/`**: Houses independent, modular services:
+  - `ResumeAnalysisPipeline`: Coordinates the end-to-end workflow pipeline.
+  - `UploadService`: Validates upload payloads (extension, MIME, size limits).
+  - `FileStorageService`: Handles directory creation and generates safe `<uuid>_<timestamp>.pdf` names.
+  - `PdfParserService` (Planned): Extracts raw text from PDF files using PyMuPDF.
+  - `PromptBuilderService` (Planned): Compiles prompt templates.
+  - `OpenAIService` (Planned): Communicates with OpenAI APIs.
+  - `AnalysisFormatterService` (Planned): Serializes and formats response payloads.
+
 * **`app/utils/`**: Standardizes utility modules such as logger instances, generic date-parsing functions, and string formatting tools.
 * **`app/prompts/`**: Formulates and version-controls prompts sent to OpenAI. Separating prompt templates from business code makes it easier to optimize AI output formatting.
 * **`app/models/`**: Defines data models and data transfer object schemas. Houses ORM definitions for prospective database integration.
@@ -311,16 +314,19 @@ Inside the `frontend/` directory (planned):
 * [x] Base project documentation
 
 ### In Progress
-* [/] Resume upload endpoint (accepting PDF files)
-* [/] PDF text extraction implementation (using PyMuPDF)
-* [/] AI integration (OpenAI prompt construction and structured responses)
+* [/] PDF text extraction design (Sprint 3: PdfParserService)
+* [/] AI analysis integration design (Sprint 4: OpenAIService)
 
 ### Planned
-* [ ] ATS compatibility analysis logic
-* [ ] Angular dashboard UI implementation
-* [ ] User authentication
-* [ ] Cloud deployment (Vercel for Frontend, Render for Backend)
-* [ ] GitHub Actions CI/CD pipeline
+* [x] Environment setup and configurations
+* [x] REST health endpoint bootstrap
+* [x] File upload endpoint, storage mapping, and validations (Completed)
+* [x] Pipeline architecture refinement (Completed)
+* [ ] PDF text extraction implementation (Sprint 3)
+* [ ] OpenAI prompt building and LLM analysis (Sprint 4)
+* [ ] Angular dashboard results UI implementation
+* [ ] Cloud deployment and CI/CD pipelines
+
 
 ---
 

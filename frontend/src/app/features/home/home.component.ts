@@ -28,16 +28,12 @@ export class HomeComponent {
 
   onFileSelected(file: File): void {
     this.fileName.set(file.name);
-    this.uiState.set('processing');
-
-    // Simulate backend parsing delay of 2.5 seconds
-    setTimeout(() => {
-      this.uiState.set('results');
-    }, 2500);
+    // UploadCardComponent handles the actual upload and state changes.
   }
 
   onReset(): void {
     this.uiState.set('idle');
     this.fileName.set('');
   }
+
 }

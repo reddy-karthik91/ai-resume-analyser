@@ -10,6 +10,14 @@ class Config:
     DEBUG = os.getenv("FLASK_DEBUG", "0") == "1"
     PORT = int(os.getenv("PORT", 5001))
     ENV = os.getenv("FLASK_ENV", "development")
+    UPLOAD_FOLDER = os.getenv(
+        "UPLOAD_FOLDER",
+        os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+            "uploads"
+        )
+    )
+
 
 class DevelopmentConfig(Config):
     """Development environment specific configuration."""
