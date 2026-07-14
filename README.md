@@ -16,16 +16,16 @@ Flask Backend (POST /api/v1/resumes/upload)
         ▼
 ResumeAnalysisPipeline (Orchestration Layer)
         ├─► UploadService / FileStorageService (Validate & write file to disk)
-        ├─► PdfParserService (Planned: Extract text using PyMuPDF)
-        ├─► PromptBuilderService (Planned: Build prompt layout)
-        ├─► OpenAIService (Planned: Connect to ChatCompletion API)
-        └─► AnalysisFormatterService (Planned: Normalize analysis response)
+        ├─► PdfParserService (Extract text using PyMuPDF)
+        ├─► PromptBuilderService (Build prompts from templates)
+        ├─► GeminiService (Connect to Google Gemini API)
+        └─► AnalysisFormatterService (Format responses and fail-fast validation)
         │
         ▼
-Standardized JSON Response
+ResumeAnalysisResult DTO
         │
         ▼
-Angular Dashboard (Planned)
+Angular Dashboard
 ```
 
 
@@ -35,10 +35,10 @@ Angular Dashboard (Planned)
 
 | Component | Technologies & Tools | Status / Notes |
 | :--- | :--- | :--- |
-| **Frontend** | Angular 19, TypeScript, RxJS, Angular Material, SCSS | Implementation planned |
-| **Backend** | Python, Flask, Flask REST API, PyMuPDF, Flask-CORS, python-dotenv | Active, health endpoint verified |
-| **AI Engine** | OpenAI API, Prompt Engineering | Integration planned |
-| **Version Control** | Git, GitHub | Repository initialized |
+| **Frontend** | Angular 19, TypeScript, RxJS, Angular Material, SCSS | Active, fully integrated with real endpoints |
+| **Backend** | Python, Flask, Flask REST API, PyMuPDF, Flask-CORS, python-dotenv | Active, fully integrated pipeline |
+| **AI Engine** | Google GenAI SDK (Gemini API), Prompt Engineering | Active, integrated and verified |
+| **Version Control** | Git, GitHub | Repository active |
 | **Deployment** | Frontend $\rightarrow$ Vercel, Backend $\rightarrow$ Render | Planned |
 
 ---
@@ -159,7 +159,7 @@ npm install
    - Returns standard upload metadata (including `uploadId` and `storedFilename`).
 
 2. **Process Document**: `POST /api/v1/resumes/<string:document_id>/process`
-   - Retrieves the document metadata from the repository index, locates the PDF on disk, parses it page-by-page using PyMuPDF, normalizes spacings, and returns the composed `ParsedDocument` DTO.
+   - Orchestrates the full AI resume evaluation flow: retrieves the document metadata, extracts text using PyMuPDF, compiles custom system prompts via PromptBuilderService, submits the generation request to Gemini via Google's official GenAI SDK, fails fast on structural or business rule anomalies via AnalysisFormatterService, and returns a fully populated `ResumeAnalysisResult` DTO.
 
 ### Storage & Repository Layer
 

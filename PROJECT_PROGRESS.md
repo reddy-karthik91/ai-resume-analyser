@@ -120,8 +120,62 @@ Inside the `frontend/` directory:
 
 ---
 
-## 📅 8. Next Milestones (Sprint 4: AI Analysis Integration)
+## 🚀 8. Sprint 4 (Phase 1): AI Domain Model Layer (Completed)
 
-- **PromptBuilderService**: Compile dynamic context prompt layouts combining extracted PDF text and ATS criteria templates.
-- **OpenAIService**: Manage connections with ChatCompletion endpoints.
-- **AnalysisFormatterService**: Normalize raw LLM outputs to standardized analysis reports.
+* **Isolated AI Domain contracts**: Engineered 15 frozen, provider-agnostic domain schema files under `backend/app/schemas/analysis/` covering prompt layouts, completion responses, enums, execution metadata, and result aggregates.
+* **Separation of Concerns**: Extracted token telemetry (`TokenUsage`) and auditing details (`AnalysisMetadata`) to separate execution telemetry from candidate results.
+* **Type-Safe Assessments**: Bound score gradings and canditate seniority mappings using strict Domain Enums (`ATSGrade`, `ProfessionalLevel`, `RecommendationCategory`).
+
+---
+
+## 🚀 9. Sprint 4 (Phase 2): PromptBuilderService Cached Compiler (Completed)
+
+* **External Prompt Templates**: Discovered and separated LLM prompts from application code, defining 5 Markdown files in `backend/app/prompts/`.
+* **In-Memory Caching Optimization**: Designed the `PromptBuilderService` constructor to parse and compile Markdown template documents once during instantiation, mitigating redundant file I/O operations.
+* **Deterministic Request Formulators**: Formulated deterministic prompts wrapping candidate resume texts and injecting app-configured settings (default model, temperature, top_p, token limit boundaries).
+* **PII-Safe Auditing Logs**: Enforced logging compliance by logging only character sizes, page/word counts, and model parameters, keeping PII out of system traces.
+
+---
+
+## 🚀 10. Sprint 4 (Phase 3): Gemini Service Integration (Completed)
+
+* **Unified official SDK**: Integrated Google's unified `google-genai` Python SDK, ensuring clean forward compatibility with Python 3.9+ environments.
+* **Structured completions configuration**: Set generation request parameters with `response_mime_type="application/json"` to ensure that Gemini returns valid, parseable JSON text structures.
+* **Transient retries & backoff**: Developed dynamic exception handlers catching transient errors (e.g. `ServerError` or 5xx API codes) and repeating requests up to limit using exponential delay retry backoffs.
+* **Response validation rules**: Programmed candidate checkpoints ensuring that output response sets contain text characters (rejects empty/whitespace-only sets due to safety blocking).
+* **Correlation ID logging**: Generated a unique `request_id` (UUID) for tracing and logging request lifecycles without exposing it in external API contracts or front-end DTOs.
+
+---
+
+## 🚀 11. Sprint 4 (Phase 4): AnalysisFormatterService Implementation (Completed)
+
+* **Two-Stage Validation isolation**: Separated constraints checking into two isolated scopes: Stage 1 `_validate_structure` (verifying syntactic elements, fields existence, and JSON typing) and Stage 2 `_validate_business_rules` (semantic ranges bounds checking and domain enum exactness).
+* **Strict boundaries checking**: Enforced strict boundary conditions on numeric attributes (ATS score in `[0, 100]`, confidence level in `[0.0, 1.0]`, overall score in `[0.0, 100.0]`), failing fast on NaN, Infinity, or overflow.
+* **Metadata extraction mapping**: Built the `AnalysisMetadata` block directly utilizing `PromptResponse` parameters, including elapsed times and model identifiers, maintaining structural provider-decoupling.
+* **PII-Safe diagnostic logs**: Configured error traces to print target metadata IDs (like `document_id` and error strings) while avoiding candidate details or raw text completions.
+* **Pipeline routing wrappers**: Integrated services directly inside the Composition Root and wrapped the `/process` REST route to execute the complete pipeline and return `ResumeAnalysisResult`.
+
+---
+
+## 🚀 12. Sprint 4 (Phase 5): Angular Frontend Integration (Completed)
+
+* **AnalysisService Creation**: Built `AnalysisService` inside `frontend/src/app/core/services/analysis.service.ts` to post to the backend processing endpoint and map typed results.
+* **Unified State Management**: Refactored the UI state to use a single strongly-typed state signal mapping between idle, uploading, processing, completed, and error statuses.
+* **Continuous Processing Pipeline**: Configured the dashboard page to transition immediately to processing state upon successful file upload, fetching results without requiring manual click interventions.
+* **Real-time Metrics Binding**: Linked the results view to real backend DTO variables: ATS score progress rings, summary paragraphs, highlighted strengths list, keyword matches matrix, AI telemetry metrics (confidence, model used, duration), and actionable suggestions checklist.
+* **Friendly Centralized Errors**: Set up error catching to transition the main view to a friendly error page displaying server messages with a retry trigger.
+* **Dynamically serving UI**: Verified the frontend compiles cleanly and routes data directly from the active Flask API engine.
+
+## 🚀 13. Sprint 4 Refactoring: Configurable LLM Providers & Groq Service Migration (Completed)
+
+* **Groq SDK Integration**: Integrated the official `groq` Python SDK client.
+* **Provider-Agnostic Composition Root**: Modified `__init__.py` to parse the `LLM_PROVIDER` environment variable, dynamically loading `GroqService` or `GeminiService` based on startup settings.
+* **Constructor Injection Refactoring**: Updated `ResumeAnalysisPipeline` to inject a generic `llm_service` dependency instead of a concrete provider class.
+* **Mock Unit Testing**: Appended mock test suites verifying that `GroqService` maps completions, rate limits, timeouts, and token usages correctly without executing network calls.
+
+---
+
+## 📅 14. Next Milestones (Sprint 5: Cloud Deployment & Production Hardening)
+
+- **Infrastructure Orchestration**: Set up Docker containers and CI/CD pipelines to build production assets.
+- **Production database setup**: Swap filesystem metadata repositories for managed SQLite or PostgreSQL systems.

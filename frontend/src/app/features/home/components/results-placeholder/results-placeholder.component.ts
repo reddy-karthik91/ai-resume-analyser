@@ -1,6 +1,7 @@
 import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
+import { ResumeAnalysisResult } from '../../../../core/models/resume-analysis-result.model';
 
 @Component({
   selector: 'app-results-placeholder',
@@ -11,27 +12,33 @@ import { MatButtonModule } from '@angular/material/button';
 })
 export class ResultsPlaceholderComponent {
   @Input() fileName: string = '';
+  @Input() result!: ResumeAnalysisResult;
   @Output() reset = new EventEmitter<void>();
 
-  // Mock data representing standard parsed outcomes
-  atsScore = 78;
-  missingSkills = ['RxJS State Streams', 'Angular Material Layouts', 'REST API Architecture', 'Unit Testing (Jasmine)'];
-  keywords = [
-    { name: 'TypeScript', found: true },
-    { name: 'Angular 19', found: true },
-    { name: 'RxJS State Streams', found: false },
-    { name: 'REST API Architecture', found: false },
-    { name: 'SCSS / CSS Grid', found: true },
-    { name: 'Flask REST API', found: true }
-  ];
-  strengths = [
-    'Strong structural foundation in modern frontend web app development frameworks.',
-    'Consistent adherence to standard PEP 8 naming conventions and guidelines.',
-    'Clear encapsulation of database config logic from initialization modules.'
-  ];
-  weaknesses = [
-    'Lacks quantitative metrics demonstrating feature optimizations.',
-    'Missing RxJS state stream architectures for component communication.',
-    'Absence of automated unit testing configs.'
-  ];
+  /**
+   * Builds keyword match matrix by combining matches and gaps.
+   */
+  get keywordMatrix(): { name: string, found: boolean }[] {
+    const list: { name: string, found: boolean }[] = [];
+    if (!this.result?.skill_analysis) {
+      return list;
+    }
+    
+    for (const kw of this.result.skill_analysis.keyword_matches || []) {
+      list.push({ name: kw, found: true });
+    }
+    for (const kw of this.result.skill_analysis.keyword_gaps || []) {
+      list.push({ name: kw, found: false });
+    }
+    return list;
+  }
+
+  /**
+   * Computes the SVG dash offset based on the ATS Score.
+   */
+  get dashOffset(): number {
+    const score = this.result?.ats_score?.score ?? 0;
+    const circumference = 326.7;
+    return circumference - (circumference * score / 100);
+  }
 }

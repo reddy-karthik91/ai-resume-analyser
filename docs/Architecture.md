@@ -95,19 +95,22 @@ The backend layer is split into individual, highly focused classes mapping to si
    - Generates unique stored filenames matching `<uuid>_<timestamp>.pdf`.
    - Saves binary file payloads to disk and registers entries via `DocumentRepository`.
 
-### Planned Components (Future Architecture)
+5. **`PromptBuilderService` ([prompt_builder_service.py](file:///Users/reddykarthik/Desktop/ai-resume-analyser/backend/app/services/prompt_builder_service.py))**
+   - Loads and compiles external Markdown templates (`system_prompt.md`, `analysis_instructions.md`, `scoring_rules.md`, `recommendation_rules.md`, `output_schema.md`).
+   - Caches templates in-memory during construction to prevent filesystem reads on subsequent requests.
+   - Outputs provider-independent `PromptRequest` instances containing formatted user resume segments and execution metadata.
 
-5. **`PromptBuilderService` (`prompt_builder_service.py` - Planned in Sprint 4)**
-   - Combines extracted text, target job descriptions, and structured grading rules.
-   - Compiles optimized prompt templates dynamically.
+6. **`GeminiService` ([gemini_service.py](file:///Users/reddykarthik/Desktop/ai-resume-analyser/backend/app/services/gemini_service.py))** and **`GroqService` ([groq_service.py](file:///Users/reddykarthik/Desktop/ai-resume-analyser/backend/app/services/groq_service.py))**
+   - Implements LLM generation clients. The active provider is resolved dynamically via the `LLM_PROVIDER` environment variable (defaulting to `"groq"`).
+   - `GeminiService` communicates with Google Gemini API using the official unified `google-genai` SDK.
+   - `GroqService` communicates with Groq Cloud using the official `groq` SDK (targeting `llama-3.3-70b-versatile`).
+   - Converts standard `PromptRequest` variables into API calls, configuring JSON formatting structures to prefer structured JSON.
+   - Generates trace correlation `request_id` parameters, implements transient retry backoffs, executes content output validation, maps token metadata, and yields provider-neutral `PromptResponse` DTOs.
 
-6. **`OpenAIService` (`openai_service.py` - Planned in Sprint 4)**
-   - Manages connection lifecycle with the OpenAI ChatCompletion API.
-   - Implements back-off retries and rate limit tracking.
-
-7. **`AnalysisFormatterService` (`analysis_formatter_service.py` - Planned in Sprint 4)**
-   - Deserializes and maps raw LLM responses to the strict API envelope structure.
-   - Provides default score values and fallbacks in case of analysis issues.
+7. **`AnalysisFormatterService` ([analysis_formatter_service.py](file:///Users/reddykarthik/Desktop/ai-resume-analyser/backend/app/services/analysis_formatter_service.py))**
+   - Parses, decodes, and validates JSON completions from `PromptResponse`.
+   - Executes Stage 1 Structural Validation (ensuring sections and typing structures match schema expectations) and Stage 2 Business Rules Validation (bounds checking, enums validation, lists constraints).
+   - Generates nested dataclasses, maps metadata metrics from the provider response, and constructs the immutable aggregate root `ResumeAnalysisResult`.
 
 ---
 
@@ -169,13 +172,39 @@ ParsedDocument (Aggregate Root)
 
 ---
 
-## 🔒 Future AI Boundary Rule
+## 🔒 Provider-Independent AI Boundary Rule
 
-To maintain clean contracts, the Angular client application **never consumes raw API outputs from OpenAI**. Instead, the backend encapsulates OpenAI response structures within an isolated domain boundary:
+To maintain clean contracts, the client application (Angular) **never consumes raw vendor responses** from LLM APIs (e.g. Gemini, OpenAI, Claude). Instead, the backend defines a provider-agnostic completion pipeline where core domain models are completely isolated from vendor SDK definitions:
 
 ```text
-OpenAI Service ──► AIAnalysisResult ──► AnalysisFormatterService ──► ResumeAnalysisResponse ──► Angular Frontend
+ParsedDocument
+      │
+      ▼
+PromptBuilderService (Compiles system/user prompts)
+      │
+      ▼
+PromptRequest (DTO holding prompts and settings)
+      │
+      ▼
+LLMService (Abstract contract interface)
+      │
+      ▼
+PromptResponse (DTO holding raw content, finish reasons, token stats)
+      │
+      ▼
+AnalysisFormatterService (Parses raw content to structured DTOs)
+      │
+      ▼
+ResumeAnalysisResult (Aggregate Root holding final formatted scores)
+      │
+      ▼
+Angular Frontend Client (via JSON response envelope)
 ```
+
+This strict boundary guarantees:
+1. **Vendor Independence**: Swapping LLM providers requires changing only the `LLMService` implementation. The rest of the pipeline remains unchanged.
+2. **Execution Metadata Separation**: Auditing parameters (durations, prompt versions, token counts) are mapped to `AnalysisMetadata` and `TokenUsage`, keeping candidate evaluations clean.
+3. **Domain Type Safety**: Uses domain enums (`ATSGrade`, `ProfessionalLevel`, `RecommendationCategory`) to ensure the client receives strongly typed structures rather than raw text.
 
 ---
 
@@ -201,3 +230,23 @@ OpenAI Service ──► AIAnalysisResult ──► AnalysisFormatterService ─
 - **Decision**: Wrap index reads and writes in `FilesystemDocumentRepository` using `threading.Lock()`.
 - **Rationale**: Prevents data race corruption of the index JSON during concurrent requests.
 - **Limit/Caveat**: `threading.Lock` applies strictly within a single-process application server. Swapping this implementation for SQLite/PostgreSQL in production will naturally replace this in-memory locking model with transaction-level database locking.
+
+### 6. Prompt Templates In-Memory Caching
+- **Decision**: Read and cache prompt markdown templates (`system_prompt.md`, `analysis_instructions.md`, etc.) in-memory inside the `PromptBuilderService` constructor (`__init__`).
+- **Rationale**: Avoids costly filesystem I/O operations (open/read/close) on every inbound resume analysis request, resulting in faster latency and lower host CPU/IO overhead.
+
+### 7. Google GenAI SDK Selection
+- **Decision**: Adopt Google's unified `google-genai` Python library over legacy `google-generativeai`.
+- **Rationale**: Follows current Google recommendation for live API maintenance and ensures compatibility with Python 3.9+ environments.
+
+### 8. Structured Response Validation and Tracing
+- **Decision**: Execute strict candidate output checks (verifying existence of candidates, parts, and non-whitespace text) and generate unique correlation `request_id` parameters logged with every request.
+- **Rationale**: Prevents mapping empty completions or safety blocks to standard response envelopes and simplifies remote logging audit debugging without exposing SDK details or PII.
+
+### 9. Two-Stage Validation Flow
+- **Decision**: Validate the schema inside `AnalysisFormatterService` using two isolated validation sweeps: `_validate_structure()` for syntax and type constraints, and `_validate_business_rules()` for domain range bounds and enums correctness.
+- **Rationale**: Isolates structural checks from business metrics validations, yielding highly targetable error logging traces and clean code maintainability.
+
+### 10. Fail-Fast MVP Constraint
+- **Decision**: Stop execution immediately and raise a `ValidationException` when any structural or business rule check fails, with zero silent corrections, default values, or auto-clamping.
+- **Rationale**: Maximizes prompt version tuning feedback cycles, ensuring that LLM inconsistencies are caught during development instead of masked.

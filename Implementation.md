@@ -316,9 +316,14 @@ Inside the `frontend/` directory (planned):
 * [x] API Health endpoint (`/api/v1/health`)
 * [x] Git initialization & monorepo `.gitignore` structure
 * [x] Base project documentation
+* [x] AI Domain Model Layer contract (Sprint 4 Phase 1)
+* [x] PromptBuilderService cached construction and prompt request compiler (Sprint 4 Phase 2)
+* [x] GeminiService client integration, exponential transient retries, and correlation ID logs (Sprint 4 Phase 3)
+* [x] AnalysisFormatterService two-stage validation and pipeline route wrappers (Sprint 4 Phase 4)
+* [x] Angular dashboard results UI implementation (Sprint 4 Phase 5)
+* [x] GroqService integration and dynamic LLM provider configuration (Sprint 4 Refactoring)
 
 ### In Progress
-* [/] OpenAI prompt building and LLM analysis design (Sprint 4: OpenAIService)
 
 ### Planned
 * [x] Environment setup and configurations
@@ -326,8 +331,12 @@ Inside the `frontend/` directory (planned):
 * [x] File upload endpoint, storage mapping, and validations (Completed)
 * [x] Pipeline architecture refinement (Completed)
 * [x] PDF text extraction and repository index layer (Completed)
-* [ ] OpenAI prompt building and LLM analysis implementation (Sprint 4)
-* [ ] Angular dashboard results UI implementation
+* [x] AI Domain Model Layer contract (Completed)
+* [x] PromptBuilderService cached compiler implementation (Completed)
+* [x] Gemini Service API client integration (Completed)
+* [x] AnalysisFormatterService route integration (Completed)
+* [x] Angular dashboard results UI implementation (Completed)
+* [x] Configurable LLM Provider & Groq API Integration (Completed)
 * [ ] Cloud deployment and CI/CD pipelines
 
 

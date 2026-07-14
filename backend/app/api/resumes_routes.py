@@ -45,28 +45,36 @@ def upload_resume():
 @resumes_bp.route("/api/v1/resumes/<string:document_id>/process", methods=["POST"])
 def process_resume(document_id):
     """
-    Route handler to process an already uploaded resume document (by parsing it).
+    Route handler to process an already uploaded resume document (analyzing it via AI).
     
-    Provides a synchronous execution placeholder mapping to the target AI workflow.
+    Provides a synchronous execution mapping to the complete AI workflow.
     """
     # Retrieve pipeline orchestrator from extension registry composition root
     pipeline = current_app.extensions["resume_pipeline"]
 
-    # Parse and extract text using the pipeline
-    parsed_doc = pipeline.parse_resume(str(document_id))
+    # Analyze and format the resume using the pipeline
+    analysis_result = pipeline.analyze_resume(str(document_id))
 
     # Serialize DTO aggregate recursively
-    serialized_doc = asdict(parsed_doc)
+    serialized_result = asdict(analysis_result)
     
     # Convert custom classes/types to standard JSON serializable string formats
-    serialized_doc["document_id"] = str(serialized_doc["document_id"])
-    serialized_doc["document_type"] = serialized_doc["document_type"].value
+    serialized_result["document_id"] = str(serialized_result["document_id"])
+    serialized_result["ats_score"]["grade"] = serialized_result["ats_score"]["grade"].value
+    serialized_result["summary"]["professional_level"] = serialized_result["summary"]["professional_level"].value
+    serialized_result["analysis_status"] = serialized_result["analysis_status"].value
+    
+    for r in serialized_result["recommendations"]:
+        r["priority"] = r["priority"].value
+        r["category"] = r["category"].value
+        
+    serialized_result["analysis_metadata"]["analysis_timestamp"] = serialized_result["analysis_metadata"]["analysis_timestamp"].isoformat() + "Z"
 
     # Construct standard response envelope
     response_payload = {
         "success": True,
-        "message": "Resume parsed successfully.",
-        "data": serialized_doc,
+        "message": "Resume analyzed successfully.",
+        "data": serialized_result,
         "errors": None,
         "timestamp": datetime.utcnow().isoformat() + "Z"
     }

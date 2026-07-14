@@ -19,24 +19,27 @@
         <div class="score-radial">
           <svg class="progress-ring" width="120" height="120">
             <circle class="progress-ring__circle-bg" stroke="#f7f6f2" stroke-width="8" fill="transparent" r="52" cx="60" cy="60"/>
-            <circle class="progress-ring__circle" stroke="#2f6b5f" stroke-width="8" stroke-dasharray="326.7" stroke-dashoffset="71.8" fill="transparent" r="52" cx="60" cy="60"/>
+            <circle class="progress-ring__circle" stroke="#2f6b5f" stroke-width="8" stroke-dasharray="326.7" [attr.stroke-dashoffset]="dashOffset" fill="transparent" r="52" cx="60" cy="60"/>
           </svg>
           <div class="score-text">
-            <span class="number">{{ atsScore }}</span>
+            <span class="number">{{ result.ats_score.score }}</span>
             <span class="label">ATS Score</span>
           </div>
         </div>
         <div class="score-summary">
           <h3>Compatibility Rating</h3>
-          <p>Your resume matches the target job profile guidelines. Address the missing key skills below to optimize compatibility.</p>
+          <p>{{ result.ats_score.feedback || 'Your resume compatibility rating is calculated. Please address recommendations to optimize.' }}</p>
         </div>
       </div>
 
       <!-- Resume Summary -->
       <div class="card summary-card">
-        <h3 class="card-title">Resume Summary</h3>
-        <p class="card-content">
-          The candidate demonstrates solid proficiency in web application development, specifically using Angular and Flask architectures. However, the profile needs more emphasis on RxJS streams and unit-testing definitions to align with senior engineering roles.
+        <h3 class="card-title">Resume Summary & Assessment</h3>
+        <p class="card-content" style="margin-bottom: 12px; line-height: 1.6;">
+          {{ result.summary.summary || 'Summary not available.' }}
+        </p>
+        <p class="card-content" style="color: #555; line-height: 1.6; border-left: 3px solid #2f6b5f; padding-left: 12px; font-style: italic;">
+          {{ result.summary.overall_feedback }}
         </p>
       </div>
 
@@ -44,19 +47,25 @@
       <div class="card half-height">
         <h3 class="card-title text-success">Highlighted Strengths</h3>
         <ul class="points-list">
-          <li *ngFor="let strength of strengths">
+          <li *ngFor="let strength of result.skill_analysis.strengths || []">
             <span class="material-symbols-outlined success-icon">check_circle</span>
             {{ strength }}
+          </li>
+          <li *ngIf="!result.skill_analysis.strengths?.length">
+            No specific strengths highlighted.
           </li>
         </ul>
       </div>
 
       <div class="card half-height">
-        <h3 class="card-title text-error">Identified Weaknesses</h3>
+        <h3 class="card-title text-error">Identified Keyword Gaps</h3>
         <ul class="points-list">
-          <li *ngFor="let weakness of weaknesses">
+          <li *ngFor="let gap of result.skill_analysis.keyword_gaps || []">
             <span class="material-symbols-outlined error-icon">cancel</span>
-            {{ weakness }}
+            {{ gap }}
+          </li>
+          <li *ngIf="!result.skill_analysis.keyword_gaps?.length">
+            No significant keyword gaps identified.
           </li>
         </ul>
       </div>
@@ -69,9 +78,12 @@
       <div class="card skills-card">
         <h3 class="card-title">Missing Critical Skills</h3>
         <div class="tags-container">
-          <span class="skill-tag" *ngFor="let skill of missingSkills">
+          <span class="skill-tag" *ngFor="let skill of result.skill_analysis.missing_skills || []">
             <span class="material-symbols-outlined tag-icon">add</span>
             {{ skill }}
+          </span>
+          <span class="skill-tag" *ngIf="!result.skill_analysis.missing_skills?.length">
+            None missing
           </span>
         </div>
       </div>
@@ -80,45 +92,64 @@
       <div class="card keyword-card">
         <h3 class="card-title">Keyword Match Matrix</h3>
         <div class="keyword-grid">
-          <div class="keyword-item" *ngFor="let keyword of keywords" [class.matched]="keyword.found">
+          <div class="keyword-item" *ngFor="let keyword of keywordMatrix" [class.matched]="keyword.found">
             <span class="material-symbols-outlined status-icon">
               {{ keyword.found ? 'check_circle' : 'error' }}
             </span>
             <span class="keyword-name">{{ keyword.name }}</span>
           </div>
+          <div *ngIf="!keywordMatrix.length" class="text-center" style="width: 100%; color: #666;">
+            No keyword telemetry logged.
+          </div>
         </div>
       </div>
 
-      <!-- Formatting Review -->
+      <!-- AI Evaluation Telemetry -->
       <div class="card formatting-card">
-        <h3 class="card-title">Formatting & Structure Review</h3>
+        <h3 class="card-title">AI Evaluation Telemetry</h3>
         <div class="format-metrics">
           <div class="metric">
-            <span class="label">MIME Type Integrity</span>
-            <span class="status status-pass">Pass</span>
+            <span class="label">Confidence Score</span>
+            <span class="status status-pass" style="background: rgba(47, 107, 95, 0.1); color: #2f6b5f;">
+              {{ (result.ats_score.confidence * 100) | number:'1.0-0' }}%
+            </span>
           </div>
           <div class="metric">
-            <span class="label">Section Layout Readability</span>
-            <span class="status status-pass">Pass</span>
+            <span class="label">Qualitative Grade</span>
+            <span class="status status-pass" style="background: rgba(47, 107, 95, 0.1); color: #2f6b5f;">
+              {{ result.ats_score.grade }}
+            </span>
           </div>
           <div class="metric">
-            <span class="label">Text Extraction Ratio</span>
-            <span class="status status-warning">78%</span>
+            <span class="label">Professional Level</span>
+            <span class="status status-warning" style="background: rgba(220, 53, 69, 0.1); color: #dc3545; border-radius: 4px; padding: 2px 8px; font-weight: 500;">
+              {{ result.summary.professional_level }}
+            </span>
           </div>
         </div>
-        <p class="formatting-hint">
-          Ensure your contact information is written in standard header format to avoid parsing errors in applicant tracking modules.
+        <p class="formatting-hint" style="margin-top: 12px; font-size: 12px; color: #666; border-top: 1px solid rgba(0,0,0,0.05); padding-top: 12px;">
+          <strong>Model Used:</strong> {{ result.analysis_metadata.model_used }} ({{ result.analysis_metadata.provider }}) &bull; <strong>Duration:</strong> {{ result.analysis_metadata.analysis_duration_ms }}ms
         </p>
       </div>
 
-      <!-- Improvement Suggestions -->
+      <!-- Actionable suggestions -->
       <div class="card suggestions-card">
         <h3 class="card-title">Actionable Suggestions</h3>
-        <ol class="numbered-list">
-          <li>Quantify your accomplishments: Add concrete metrics (e.g. "improved loading latency by 30%") to highlight impact.</li>
-          <li>Incorporate state management skills: Integrate RxJS streams and observables explicitly inside the text content.</li>
-          <li>Refine layout typography: Keep line spacing strictly between 1.15 and 1.3 for optimal parsing reading.</li>
-        </ol>
+        <ul class="points-list" style="padding-left: 0; list-style: none; margin-top: 12px;">
+          <li *ngFor="let rec of result.recommendations || []" style="margin-bottom: 12px; display: flex; align-items: flex-start; gap: 8px;">
+            <span class="material-symbols-outlined" style="color: #2f6b5f; font-size: 20px; margin-top: 2px;">info</span>
+            <div>
+              <strong>{{ rec.title }}</strong> 
+              <span style="font-size: 10px; margin-left: 6px; padding: 2px 6px; border-radius: 4px; background: rgba(0,0,0,0.05); text-transform: uppercase; font-weight: 600;">
+                {{ rec.priority }}
+              </span>
+              <p style="margin: 4px 0 0 0; font-size: 13px; color: #666; line-height: 1.4;">{{ rec.description }}</p>
+            </div>
+          </li>
+          <li *ngIf="!result.recommendations?.length">
+            No recommendations provided.
+          </li>
+        </ul>
       </div>
 
     </div>

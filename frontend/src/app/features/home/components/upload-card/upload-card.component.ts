@@ -17,6 +17,8 @@ import { UploadResponse } from '../../../../core/models/upload-response.model';
 })
 export class UploadCardComponent implements OnDestroy {
   @Output() fileSelected = new EventEmitter<File>();
+  @Output() uploadCompleted = new EventEmitter<any>();
+  @Output() uploadFailed = new EventEmitter<string>();
   
   private uploadService = inject(UploadService);
   private uploadSubscription?: Subscription;
@@ -145,9 +147,11 @@ export class UploadCardComponent implements OnDestroy {
               errorMessage: null,
               metadata: response.data
             });
+            this.uploadCompleted.emit(response.data);
           } else {
             const errMsg = response?.message || response?.errors?.[0] || 'Upload failed.';
             this.setErrorState(errMsg);
+            this.uploadFailed.emit(errMsg);
           }
         }
       },
@@ -159,6 +163,7 @@ export class UploadCardComponent implements OnDestroy {
           msg = err.message;
         }
         this.setErrorState(msg);
+        this.uploadFailed.emit(msg);
       }
     });
   }
