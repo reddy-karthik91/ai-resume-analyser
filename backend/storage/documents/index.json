@@ -1055,5 +1055,12 @@
         "stored_filename": "6edbc500e57a477881b0244072f0246d_20260715T044217.pdf",
         "file_size": 47636,
         "uploaded_at": "2026-07-15T04:42:17.937741Z"
+    },
+    "af7c6ef0-789b-40b1-8ed9-49260e289325": {
+        "document_id": "af7c6ef0-789b-40b1-8ed9-49260e289325",
+        "original_filename": "Karthik.R-Angular,Python-resume.pdf",
+        "stored_filename": "af7c6ef0789b40b18ed949260e289325_20260715T050615.pdf",
+        "file_size": 47547,
+        "uploaded_at": "2026-07-15T05:06:15.954623Z"
     }
 }
