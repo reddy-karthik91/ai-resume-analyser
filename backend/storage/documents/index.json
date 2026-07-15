@@ -1048,5 +1048,12 @@
         "stored_filename": "656a947a309643778a00bd94eda8322d_20260714T172704.pdf",
         "file_size": 534281,
         "uploaded_at": "2026-07-14T17:27:04.304865Z"
+    },
+    "6edbc500-e57a-4778-81b0-244072f0246d": {
+        "document_id": "6edbc500-e57a-4778-81b0-244072f0246d",
+        "original_filename": "Reddy-karthik-4.6-dev.pdf",
+        "stored_filename": "6edbc500e57a477881b0244072f0246d_20260715T044217.pdf",
+        "file_size": 47636,
+        "uploaded_at": "2026-07-15T04:42:17.937741Z"
     }
 }
